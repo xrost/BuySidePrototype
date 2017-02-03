@@ -20,7 +20,6 @@ namespace BuySideOrderState
 			Accepted,
 				PendingAllocation,
 				Allocated,
-				CancelRejected,
 			Rejected,
 			Deleted,
 		}
@@ -37,23 +36,20 @@ namespace BuySideOrderState
 			state.Configure(State.PendingAllocation)
 				.SubstateOf(State.Accepted)
 				.Permit(Action.Delete, State.Deleted)
-				.Permit(Action.RejectCancel, State.CancelRejected)
+				.Ignore(Action.RejectCancel)
 				.Permit(Action.Allocate, State.Allocated);
 
 			state.Configure(State.Allocated)
 				.SubstateOf(State.Accepted)
 				.Permit(Action.Delete, State.Deleted)
-				.Permit(Action.RejectCancel, State.CancelRejected);
-
-			state.Configure(State.CancelRejected)
-				.SubstateOf(State.Accepted);
+				.Ignore(Action.RejectCancel);
 
 			state.OnTransitioned(StateChanged);
 		}
 
 		private void StateChanged(StateMachine<State, Action>.Transition t)
 		{
-			Console.WriteLine($"{t.Source} => {t.Destination},  Actions: [{string.Join(" | ", state.PermittedTriggers)}]");
+			//Console.WriteLine($"{t.Source} => {t.Destination},  Actions: [{string.Join(" | ", state.PermittedTriggers)}]");
 			OnStateChange?.Invoke(this, EventArgs.Empty);
 		}
 
@@ -62,7 +58,7 @@ namespace BuySideOrderState
 		public bool IsAllocated => state.IsInState(State.Allocated);
 		public bool IsDeleted => state.IsInState(State.Deleted);
 		public bool IsRejected => state.IsInState(State.Rejected);
-		public bool IsCancelRejected => state.IsInState(State.CancelRejected);
+		public bool IsCancelRejected { get; private set; }
 
 		public State GetState() => state.State;
 
@@ -74,7 +70,12 @@ namespace BuySideOrderState
 
 		public void Delete() => state.Fire(Action.Delete);
 
-		public void RejectCancel() => state.Fire(Action.RejectCancel);
+		public void RejectCancel()
+		{
+			state.Fire(Action.RejectCancel);
+			IsCancelRejected = true;
+			OnStateChange?.Invoke(this, EventArgs.Empty);
+		}
 
 		public event EventHandler OnStateChange;
 
