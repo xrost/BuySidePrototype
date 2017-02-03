@@ -50,6 +50,7 @@ namespace BuySideOrderState
 			state.Configure(State.Cancelled)
 				.InternalTransition(orderAcceptedTrigger, OnOrderAccepted)
 				.InternalTransition(orderDeletedTrigger, OrderDeleted)
+				.InternalTransition(orderRejectedTrigger, OnOrderRejected)
 				.InternalTransition(cancelRejectedTrigger, CancelRejected)
 				.Permit(Trigger.CloseOrder, State.Closed);
 

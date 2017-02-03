@@ -65,7 +65,7 @@ namespace BuySideOrderState
 		public void RejectCancel(int brokerId)
 		{
 			GetOrder(brokerId).RejectCancel();
-			if (orders.All(o => o.IsCancelRejected))
+			if (orders.All(o => o.IsCancelRejected || o.IsRejected))
 				OnCancelRejected.Raise();
 		}
 
@@ -80,9 +80,6 @@ namespace BuySideOrderState
 				throw new Exception("Broker not found");
 			return order;
 		}
-
-		public bool AllOrdersDeleted() => orders.All(b => b.IsDeleted);
-
 
 		#region IEnumerable
 
