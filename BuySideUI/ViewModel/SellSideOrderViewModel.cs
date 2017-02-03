@@ -34,6 +34,16 @@ namespace BuySideUI.ViewModel
 			order.Delete();
 		}
 
+		public void Reject()
+		{
+			order.Reject();
+		}
+
+		public void RejectCancel()
+		{
+			order.RejectCancel();
+		}
+
 		public string State
 		{
 			get
@@ -41,15 +51,17 @@ namespace BuySideUI.ViewModel
 				switch (order.GetState())
 				{
 					case SellSideOrder.State.NotAccepted:
-						return "";
-					case SellSideOrder.State.Accepted:
-						return "Accepted";
-					case SellSideOrder.State.WaitingForAllocation:
-						return "Allocation Pending";
+						return "Pending";
+					case SellSideOrder.State.Rejected:
+						return "Rejected";
+					case SellSideOrder.State.PendingAllocation:
+						return "Order Confirmed";
 					case SellSideOrder.State.Allocated:
 						return "Allocated";
 					case SellSideOrder.State.Deleted:
 						return "Deleted";
+					case SellSideOrder.State.CancelRejected:
+						return "Cancel Rejected";
 				}
 				return "Unknown";
 			}

@@ -10,27 +10,32 @@ namespace BuySideOrderState
 		private readonly StateMachine<State, Trigger> state = new StateMachine<State, Trigger>(State.BuySide);
 		private readonly BuySide buySide = new BuySide();
 		private readonly SellSide sellSide = new SellSide(3);
-		private readonly StateMachine<State, Trigger>.TriggerWithParameters<int> orderCreatedTrigger;
+		private readonly StateMachine<State, Trigger>.TriggerWithParameters<int> orderAcceptedTrigger;
 		private readonly StateMachine<State, Trigger>.TriggerWithParameters<int> orderDeletedTrigger;
 		private readonly StateMachine<State, Trigger>.TriggerWithParameters<int> orderAllocatedTrigger;
+		private readonly StateMachine<State, Trigger>.TriggerWithParameters<int> orderRejectedTrigger;
+		private readonly StateMachine<State, Trigger>.TriggerWithParameters<int> cancelRejectedTrigger;
 
 		public Order()
 		{
 			SellSide = new SellSideWrapper(sellSide);
 
-			orderCreatedTrigger = state.SetTriggerParameters<int>(Trigger.OrderCreated);
+			orderAcceptedTrigger = state.SetTriggerParameters<int>(Trigger.OrderAccepted);
 			orderDeletedTrigger = state.SetTriggerParameters<int>(Trigger.OrderDeleted);
 			orderAllocatedTrigger = state.SetTriggerParameters<int>(Trigger.OrderAllocated);
+			orderRejectedTrigger = state.SetTriggerParameters<int>(Trigger.OrderRejected);
+			cancelRejectedTrigger = state.SetTriggerParameters<int>(Trigger.CancelRejected);
 
 			state.Configure(State.BuySide)
 				.Ignore(Trigger.AddBuySideOrder)
 				.Permit(Trigger.BuySideCompleted, State.SellSide)
-				.Permit(Trigger.CancelBuySide, State.Cancelled)
+				.Permit(Trigger.CancelBuySide, State.Closed)
 				.Permit(Trigger.CloseOrder, State.Closed);
 
 			state.Configure(State.SellSide)
 				.OnEntry(() => OnSellSide?.Invoke(this, EventArgs.Empty))
-				.InternalTransition(orderCreatedTrigger, OrderAccepted)
+				.InternalTransition(orderAcceptedTrigger, OnOrderAccepted)
+				.InternalTransition(orderRejectedTrigger, OnOrderRejected)
 				.InternalTransition(orderAllocatedTrigger, (brokerId, t) => sellSide.AllocateOrder(brokerId))
 				.InternalTransition(orderDeletedTrigger, OrderDeleted)
 				.Permit(Trigger.CloseOrder, State.Closed)
@@ -42,28 +47,45 @@ namespace BuySideOrderState
 				});
 
 			state.Configure(State.Cancelled)
-				.InternalTransition(orderCreatedTrigger, OrderAccepted)
+				.InternalTransition(orderAcceptedTrigger, OnOrderAccepted)
 				.InternalTransition(orderDeletedTrigger, OrderDeleted )
+				.InternalTransition(cancelRejectedTrigger, CancelRejected)
 				.Permit(Trigger.CloseOrder, State.Closed);
-				//.PermitIf(Trigger.CloseOrder, State.Closed, () => !sellSide.HasAcceptedOrders());
 
 			state.OnTransitioned(RaiseStateChanged);
 
 			var xml = state.ToDotGraph();
 		}
 
-		private void OrderAccepted(int brokerId, StateMachine<State, Trigger>.Transition t)
+		private void RaiseStateChanged(StateMachine<State, Trigger>.Transition t)
 		{
-			var wasEmpty = !sellSide.HasAcceptedOrders();
-			sellSide.AcceptOrder(brokerId);
-			if (wasEmpty && t.Destination == State.SellSide)
+			//Console.WriteLine($"From: {t.Source} to {t.Destination}");
+			OnStateChange?.Invoke(this, state.State);
+		}
+
+		private void OnOrderAccepted(int brokerId, StateMachine<State, Trigger>.Transition t)
+		{
+			var firstAccepted = sellSide.AcceptOrder(brokerId);
+			if (firstAccepted && t.Destination == State.SellSide)
 				OnFirstOrderAccepted?.Invoke(this, EventArgs.Empty);
 		}
 
-		private void RaiseStateChanged(StateMachine<State, Trigger>.Transition t)
+		private void OnOrderRejected(int brokerId, StateMachine<State, Trigger>.Transition t)
 		{
-			Console.WriteLine($"From: {t.Source} to {t.Destination}");
-			OnStateChange?.Invoke(this, state.State);
+			if (sellSide.RejectOrder(brokerId))
+			{
+				OnRejected?.Invoke(this, EventArgs.Empty);
+				state.Fire(Trigger.CloseOrder);
+			}
+		}
+
+		private void CancelRejected(int brokerId, StateMachine<State, Trigger>.Transition t)
+		{
+			if (sellSide.RejectCancel(brokerId))
+			{
+				OnCancelRejected?.Invoke(this, EventArgs.Empty);
+				state.Fire(Trigger.CloseOrder);
+			}
 		}
 
 		private void OrderDeleted(int brokerId, StateMachine<State, Trigger>.Transition t)
@@ -95,7 +117,7 @@ namespace BuySideOrderState
 
 		public void OrderCreated(int brokerId)
 		{
-			state.Fire(orderCreatedTrigger, brokerId);
+			state.Fire(orderAcceptedTrigger, brokerId);
 		}
 
 		public void OrderAllocated(int brokerId)
@@ -106,6 +128,16 @@ namespace BuySideOrderState
 		public void OrderDeleted(int brokerId)
 		{
 			state.Fire(orderDeletedTrigger, brokerId);
+		}
+
+		public void OrderRejected(int brokerId)
+		{
+			state.Fire(orderRejectedTrigger, brokerId);
+		}
+
+		public void CancelRejected(int brokerId)
+		{
+			state.Fire(cancelRejectedTrigger, brokerId);
 		}
 
 		public State GetState() => state.State;
@@ -123,9 +155,11 @@ namespace BuySideOrderState
 			AddBuySideOrder,
 			BuySideCompleted,
 			CancelBuySide,
-			OrderCreated,
+			OrderAccepted,
 			OrderAllocated,
 			OrderDeleted,
+			OrderRejected,
+			CancelRejected,
 			CloseOrder
 		}
 
@@ -155,5 +189,9 @@ namespace BuySideOrderState
 		public event EventHandler OnBuySideCancel;
 
 		public event EventHandler OnFirstOrderAccepted;
+
+		public event EventHandler OnRejected;
+
+		public event EventHandler OnCancelRejected;
 	}
 }

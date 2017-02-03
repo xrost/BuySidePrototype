@@ -9,16 +9,20 @@ namespace BuySideOrderState
 		{
 			Accept,
 			Allocate,
-			Delete
+			Delete,
+			Reject,
+			RejectCancel
 		}
 
 		public enum State
 		{
 			NotAccepted,
 			Accepted,
-				WaitingForAllocation,
+				PendingAllocation,
 				Allocated,
-			Deleted
+				CancelRejected,
+			Rejected,
+			Deleted,
 		}
 
 		private readonly StateMachine<State, Action> state = new StateMachine<State, Action>(State.NotAccepted);
@@ -27,16 +31,21 @@ namespace BuySideOrderState
 		{
 			BrokerId = brokerId;
 			state.Configure(State.NotAccepted)
-				.Permit(Action.Accept, State.WaitingForAllocation);
+				.Permit(Action.Accept, State.PendingAllocation)
+				.Permit(Action.Reject, State.Rejected);
 
-			state.Configure(State.Accepted)
-				.Permit(Action.Delete, State.Deleted);
-
-			state.Configure(State.WaitingForAllocation)
+			state.Configure(State.PendingAllocation)
 				.SubstateOf(State.Accepted)
+				.Permit(Action.Delete, State.Deleted)
+				.Permit(Action.RejectCancel, State.CancelRejected)
 				.Permit(Action.Allocate, State.Allocated);
 
 			state.Configure(State.Allocated)
+				.SubstateOf(State.Accepted)
+				.Permit(Action.Delete, State.Deleted)
+				.Permit(Action.RejectCancel, State.CancelRejected);
+
+			state.Configure(State.CancelRejected)
 				.SubstateOf(State.Accepted);
 
 			state.OnTransitioned(StateChanged);
@@ -44,33 +53,39 @@ namespace BuySideOrderState
 
 		private void StateChanged(StateMachine<State, Action>.Transition t)
 		{
+			Console.WriteLine($"{t.Source} => {t.Destination},  Actions: [{string.Join(" | ", state.PermittedTriggers)}]");
 			OnStateChange?.Invoke(this, EventArgs.Empty);
-			//Console.WriteLine($"{t.Source} => {t.Destination}, [{string.Join(", ", state.PermittedTriggers)}]");
 		}
 
 		public int BrokerId { get; }
-		public bool OrderAccepted => state.IsInState(State.Accepted);
+		public bool IsAccepted => state.IsInState(State.Accepted);
 		public bool IsAllocated => state.IsInState(State.Allocated);
 		public bool IsDeleted => state.IsInState(State.Deleted);
+		public bool IsRejected => state.IsInState(State.Rejected);
+		public bool IsCancelRejected => state.IsInState(State.CancelRejected);
 
 		public State GetState() => state.State;
 
-		public void Accept()
-		{
-			state.Fire(Action.Accept);
-		}
+		public void Accept() => state.Fire(Action.Accept);
 
-		public void Allocate()
-		{
-			state.Fire(Action.Allocate);
-		}
+		public void Reject() => state.Fire(Action.Reject);
 
-		public void Delete()
-		{
-			state.Fire(Action.Delete);
-		}
+		public void Allocate() => state.Fire(Action.Allocate);
+
+		public void Delete() => state.Fire(Action.Delete);
+
+		public void RejectCancel() => state.Fire(Action.RejectCancel);
 
 		public event EventHandler OnStateChange;
+
+		public static void Test()
+		{
+			var order = new SellSideOrder(1);
+			order.Accept();
+			order.RejectCancel();
+			//order.Allocate();
+			//order.Delete();
+		}
 	}
 
 	public static class BrokerTest

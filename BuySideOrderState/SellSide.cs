@@ -18,11 +18,33 @@ namespace BuySideOrderState
 			}
 		}
 
-		public void AcceptOrder(int brokerId) => GetOrder(brokerId).Accept();
+		public bool AcceptOrder(int brokerId)
+		{
+			var wasEmpty = orders.All(o => !o.IsAccepted);
+			GetOrder(brokerId).Accept();
+			return wasEmpty;
+
+		}
 
 		public void AllocateOrder(int brokerId) => GetOrder(brokerId).Allocate();
 
-		public void DeleteOrder(int brokerId) => GetOrder(brokerId).Delete();
+		public bool DeleteOrder(int brokerId)
+		{
+			GetOrder(brokerId).Delete();
+			return orders.All(o => !o.IsAccepted);
+		}
+
+		public bool RejectOrder(int brokerId)
+		{
+			GetOrder(brokerId).Reject();
+			return orders.All(o => o.IsRejected);
+		}
+
+		public bool RejectCancel(int brokerId)
+		{
+			GetOrder(brokerId).RejectCancel();
+			return orders.All(o => o.IsCancelRejected);
+		}
 
 		[CanBeNull]
 		private SellSideOrder FindOrder(int brokerId) => orders.FirstOrDefault(b => b.BrokerId == brokerId);
@@ -36,9 +58,9 @@ namespace BuySideOrderState
 			return order;
 		}
 
-		public bool HasAcceptedOrders() => orders.Any(b => b.OrderAccepted);
+		public bool HasAcceptedOrders() => orders.Any(b => b.IsAccepted);
 		public bool AllOrdersDeleted() => orders.All(b => b.IsDeleted);
-		public bool OrderExists(int brokerId) => (FindOrder(brokerId)?.OrderAccepted).GetValueOrDefault();
+		public bool OrderExists(int brokerId) => (FindOrder(brokerId)?.IsAccepted).GetValueOrDefault();
 
 		public bool CanAllocate(int brokerId)
 		{

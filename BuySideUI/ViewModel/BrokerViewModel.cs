@@ -16,6 +16,8 @@ namespace BuySideUI.ViewModel
 			AcceptCommand = new RelayCommand(() => Raise(BrokerAction.Accept), () => isEnabled);
 			AllocateCommand = new RelayCommand(() => Raise(BrokerAction.Allocate), () => isEnabled);
 			DeleteCommand = new RelayCommand(() => Raise(BrokerAction.Delete), () => isEnabled);
+			RejectCommand = new RelayCommand(() => Raise(BrokerAction.Reject), () => isEnabled);
+			RejectCancelCommand = new RelayCommand(() => Raise(BrokerAction.RejectCancel), () => isEnabled);
 
 			Messenger.Default.Register<BuySideCompletedEvent>(this, (_) => isEnabled = true);
 		}
@@ -25,6 +27,8 @@ namespace BuySideUI.ViewModel
 		public RelayCommand AcceptCommand { get; }
 		public RelayCommand AllocateCommand { get; }
 		public RelayCommand DeleteCommand { get; }
+		public RelayCommand RejectCommand { get; }
+		public RelayCommand RejectCancelCommand { get; }
 
 		private void Raise(BrokerAction action)
 		{
@@ -36,6 +40,8 @@ namespace BuySideUI.ViewModel
 	{
 		Accept,
 		Allocate,
-		Delete
+		Delete,
+		Reject,
+		RejectCancel
 	}
 }

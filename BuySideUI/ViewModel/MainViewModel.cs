@@ -28,8 +28,10 @@ namespace BuySideUI.ViewModel
 
 
 	        model.OnSellSide += OnSellSideTransition;
-			model.OnStateChange += (_, state) => RaisePropertyChanged(() => State);
+			model.OnStateChange += (_, state) => RaisePropertyChanged(() => StateName);
 			model.OnFirstOrderAccepted += (_, state) => BuySideMessages.Add("Order Accepted");
+			model.OnRejected += (_, state) => BuySideMessages.Add("Order Rejected");
+			model.OnCancelRejected += (_, state) => BuySideMessages.Add("Cancellation Rejected");
 			model.OnBuySideCancel += (_, args) => SellSideMessages.Add("Order was cancelled");
 
 			Messenger.Default.Register<BrokerActionEvent>(this, OnBrokerAction);
@@ -50,7 +52,13 @@ namespace BuySideUI.ViewModel
 				    case BrokerAction.Delete:
 					    model.OrderDeleted(evt.BrokerId);
 					    break;
-			    }
+				    case BrokerAction.Reject:
+					    model.OrderRejected(evt.BrokerId);
+					    break;
+					case BrokerAction.RejectCancel:
+						model.CancelRejected(evt.BrokerId);
+						break;
+				}
 
 		    }
 		    catch (InvalidOperationException)
@@ -81,7 +89,7 @@ namespace BuySideUI.ViewModel
 		public bool ShowSellSide { get; private set; }
 
 
-	    public string State => model.GetState().ToString();
+	    public string StateName => model.GetState().ToString();
 
 	    private void AddBuySideOrder()
 	    {
