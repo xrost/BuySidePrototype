@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuySide.cs" />
+    <Compile Include="EventExt.cs" />
     <Compile Include="Order.cs" />
     <Compile Include="SellSide.cs" />
     <Compile Include="SellSideOrder.cs" />

@@ -18,32 +18,55 @@ namespace BuySideOrderState
 			}
 		}
 
-		public bool AcceptOrder(int brokerId)
+		public void AcceptOrder(int brokerId)
 		{
 			var wasEmpty = orders.All(o => !o.IsAccepted);
 			GetOrder(brokerId).Accept();
-			return wasEmpty;
-
+			if (wasEmpty)
+				OnFirstOrderAccepted.Raise();
 		}
 
-		public void AllocateOrder(int brokerId) => GetOrder(brokerId).Allocate();
+		public void AllocateOrder(int brokerId)
+		{
+			var allocationExisted = orders.Any(o => o.IsAllocated);
+			GetOrder(brokerId).Allocate();
+			if (!allocationExisted)
+				OnAllocated.Raise();
+		}
 
-		public bool DeleteOrder(int brokerId)
+		private void RaiseRejectedOrCancelled()
+		{
+			var allRejected = true;
+			foreach (var order in orders)
+			{
+				var state = order.GetState();
+				if (!(state == SellSideOrder.State.Deleted || state == SellSideOrder.State.Rejected))
+					return;
+				allRejected = allRejected && state == SellSideOrder.State.Rejected;
+			}
+			if (allRejected)
+				OnRejected.Raise();
+			else
+				OnCancelled.Raise();
+		}
+
+		public void DeleteOrder(int brokerId)
 		{
 			GetOrder(brokerId).Delete();
-			return orders.All(o => !o.IsAccepted);
+			RaiseRejectedOrCancelled();
 		}
 
-		public bool RejectOrder(int brokerId)
+		public void RejectOrder(int brokerId)
 		{
 			GetOrder(brokerId).Reject();
-			return orders.All(o => o.IsRejected);
+			RaiseRejectedOrCancelled();
 		}
 
-		public bool RejectCancel(int brokerId)
+		public void RejectCancel(int brokerId)
 		{
 			GetOrder(brokerId).RejectCancel();
-			return orders.All(o => o.IsCancelRejected);
+			if (orders.All(o => o.IsCancelRejected))
+				OnCancelRejected.Raise();
 		}
 
 		[CanBeNull]
@@ -58,17 +81,8 @@ namespace BuySideOrderState
 			return order;
 		}
 
-		public bool HasAcceptedOrders() => orders.Any(b => b.IsAccepted);
 		public bool AllOrdersDeleted() => orders.All(b => b.IsDeleted);
-		public bool OrderExists(int brokerId) => (FindOrder(brokerId)?.IsAccepted).GetValueOrDefault();
 
-		public bool CanAllocate(int brokerId)
-		{
-			var broker = FindOrder(brokerId);
-			if (broker == null)
-				return false;
-			return !broker.IsAllocated;
-		}
 
 		#region IEnumerable
 
@@ -81,5 +95,11 @@ namespace BuySideOrderState
 
 
 		#endregion
+
+		public event EventHandler OnFirstOrderAccepted;
+		public event EventHandler OnAllocated;
+		public event EventHandler OnCancelled;
+		public event EventHandler OnCancelRejected;
+		public event EventHandler OnRejected;
 	}
 }

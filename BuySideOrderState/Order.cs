@@ -18,7 +18,8 @@ namespace BuySideOrderState
 
 		public Order()
 		{
-			SellSide = new SellSideWrapper(sellSide);
+			SellSide = new SellSideWrapper(sellSide, this);
+			SubscribeToSellSideEvents();
 
 			orderAcceptedTrigger = state.SetTriggerParameters<int>(Trigger.OrderAccepted);
 			orderDeletedTrigger = state.SetTriggerParameters<int>(Trigger.OrderDeleted);
@@ -48,13 +49,19 @@ namespace BuySideOrderState
 
 			state.Configure(State.Cancelled)
 				.InternalTransition(orderAcceptedTrigger, OnOrderAccepted)
-				.InternalTransition(orderDeletedTrigger, OrderDeleted )
+				.InternalTransition(orderDeletedTrigger, OrderDeleted)
 				.InternalTransition(cancelRejectedTrigger, CancelRejected)
 				.Permit(Trigger.CloseOrder, State.Closed);
 
 			state.OnTransitioned(RaiseStateChanged);
 
 			var xml = state.ToDotGraph();
+		}
+
+		private void SubscribeToSellSideEvents()
+		{
+			SellSide.OnRejected += (_, args) => state.Fire(Trigger.CloseOrder);
+			SellSide.OnCancelled += (_, args) => state.Fire(Trigger.CloseOrder);
 		}
 
 		private void RaiseStateChanged(StateMachine<State, Trigger>.Transition t)
@@ -65,34 +72,22 @@ namespace BuySideOrderState
 
 		private void OnOrderAccepted(int brokerId, StateMachine<State, Trigger>.Transition t)
 		{
-			var firstAccepted = sellSide.AcceptOrder(brokerId);
-			if (firstAccepted && t.Destination == State.SellSide)
-				OnFirstOrderAccepted?.Invoke(this, EventArgs.Empty);
+			sellSide.AcceptOrder(brokerId);
 		}
 
 		private void OnOrderRejected(int brokerId, StateMachine<State, Trigger>.Transition t)
 		{
-			if (sellSide.RejectOrder(brokerId))
-			{
-				OnRejected?.Invoke(this, EventArgs.Empty);
-				state.Fire(Trigger.CloseOrder);
-			}
+			sellSide.RejectOrder(brokerId);
 		}
 
 		private void CancelRejected(int brokerId, StateMachine<State, Trigger>.Transition t)
 		{
-			if (sellSide.RejectCancel(brokerId))
-			{
-				OnCancelRejected?.Invoke(this, EventArgs.Empty);
-				state.Fire(Trigger.CloseOrder);
-			}
+			sellSide.RejectCancel(brokerId);
 		}
 
 		private void OrderDeleted(int brokerId, StateMachine<State, Trigger>.Transition t)
 		{
 			sellSide.DeleteOrder(brokerId);
-			if (sellSide.AllOrdersDeleted())
-				state.Fire(Trigger.CloseOrder);
 		}
 
 		private void NotifySellSideAboutCancellation()
@@ -170,15 +165,49 @@ namespace BuySideOrderState
 		public class SellSideWrapper
 		{
 			private readonly SellSide sellSide;
+			private readonly Order order;
 
-			public SellSideWrapper(SellSide sellSide)
+			public SellSideWrapper(SellSide sellSide, Order order)
 			{
+				this.order = order;
 				this.sellSide = sellSide;
+				this.sellSide.OnFirstOrderAccepted += FirstOrderAccepted;
 			}
 
-			public bool OrderExists(int brokerId) => sellSide.OrderExists(brokerId);
-			public bool CanAllocate(int brokerId) => sellSide.CanAllocate(brokerId);
+			private void FirstOrderAccepted(object sender, EventArgs e)
+			{
+				if (order.state.State == State.SellSide)
+					OnFirstOrderAccepted.Raise();
+			}
+
+
 			public IEnumerable<SellSideOrder> Orders => sellSide;
+
+			public event EventHandler OnFirstOrderAccepted;
+
+			public event EventHandler OnAllocated
+			{
+				add { sellSide.OnAllocated += value; }
+				remove { sellSide.OnAllocated -= value; }
+			}
+
+			public event EventHandler OnCancelled
+			{
+				add { sellSide.OnCancelled += value; }
+				remove { sellSide.OnCancelled -= value; }
+			}
+
+			public event EventHandler OnCancelRejected
+			{
+				add { sellSide.OnCancelRejected += value; }
+				remove { sellSide.OnCancelRejected -= value; }
+			}
+
+			public event EventHandler OnRejected
+			{
+				add { sellSide.OnRejected += value; }
+				remove { sellSide.OnRejected -= value; }
+			}
 		}
 
 
@@ -187,11 +216,5 @@ namespace BuySideOrderState
 		public event EventHandler OnSellSide;
 
 		public event EventHandler OnBuySideCancel;
-
-		public event EventHandler OnFirstOrderAccepted;
-
-		public event EventHandler OnRejected;
-
-		public event EventHandler OnCancelRejected;
 	}
 }
