@@ -88,5 +88,10 @@ namespace BuySideUI.ViewModel
 		    model.AddBuySideOrder(DateTime.Now.ToLongTimeString());
 			RaisePropertyChanged(nameof(BuySideStepCount));
 		}
-	}
+
+	    public override void Cleanup()
+	    {
+			Messenger.Default.Unregister<BrokerActionEvent>(this);
+		}
+    }
 }

@@ -72,6 +72,7 @@
 			ItemsSource="{Binding SellSideMessages}" 
 			Margin="10,172,10,0" 
 			ItemTemplate="{StaticResource MessageTemplate}" />
+		<Button Content="Reset" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="76" Click="button_Click"/>
 
 	</Grid>
 </Window>
