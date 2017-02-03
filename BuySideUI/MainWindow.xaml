@@ -1,0 +1,78 @@
+﻿<Window x:Class="BuySideUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BuySideUI"
+        mc:Ignorable="d"
+		DataContext="{Binding Main, Source={StaticResource Locator}}"
+        Title="MainWindow" Height="350" Width="525">
+	<Grid>
+		<Grid.Resources>
+			<DataTemplate x:Key="MessageTemplate">
+				<Border CornerRadius="2" BorderThickness="1" BorderBrush="DarkGreen" Margin="0,0,0,5" Padding="2">
+					<TextBlock Text="{Binding .}" Height="16"/>
+				</Border>
+			</DataTemplate>
+		</Grid.Resources>
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="162"/>
+			<ColumnDefinition/>
+			<ColumnDefinition Width="160"/>
+		</Grid.ColumnDefinitions>
+		<Rectangle Fill="#FFB4F7C3" Grid.Column="2"/>
+		<Rectangle Fill="#FFB4D9F7"/>
+		<Button Content="Add"
+				Command="{Binding AddOrderCommand}"
+				HorizontalAlignment="Left" Margin="27,60,0,0" VerticalAlignment="Top" Width="108"/>
+		<Button Content="Cancel"
+			Command="{Binding CancelBuySideOrderCommand}"
+			HorizontalAlignment="Left" Margin="27,85,0,0" VerticalAlignment="Top" Width="108"/>
+		<TextBlock TextWrapping="Wrap" Text="BUY SIDE" VerticalAlignment="Top" FontSize="16" Foreground="#FF0F5091" Margin="0,15,0,0" HorizontalAlignment="Center"/>
+		<ItemsControl 
+			ItemsSource="{Binding BuySideMessages}" 
+			Margin="10,120,10,0" 
+			ItemTemplate="{StaticResource MessageTemplate}" />
+
+		<TextBlock 
+			Text="{Binding BuySideStepCount, StringFormat=Steps: \{0\}/2}"
+			TextWrapping="Wrap" VerticalAlignment="Top" Margin="0,38,0,0" TextAlignment="Center"/>
+
+
+		<ItemsControl Grid.Column="1"
+			ItemsSource="{Binding SellSideOrders}" Margin="6,38,12,0">
+			<ItemsControl.ItemTemplate>
+				<DataTemplate>
+					<DockPanel LastChildFill="False">
+						<TextBlock Text="{Binding BrokerName}" DockPanel.Dock="Left"/>
+						<TextBlock Text="{Binding State}" DockPanel.Dock="Right"/>
+					</DockPanel>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+		<TextBlock Grid.Column="1" TextWrapping="Wrap" Text="{Binding State, Mode=OneWay, StringFormat=Gateway: \{0\}}" VerticalAlignment="Top" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+
+		<ItemsControl Grid.Column="2" 
+			ItemsSource="{Binding Brokers}" Margin="4,38,0,0">
+			<ItemsControl.ItemTemplate>
+				<DataTemplate>
+					<StackPanel Orientation="Vertical" Margin="0,0,0,8">
+						<TextBlock Text="{Binding Name}"/>
+						<StackPanel Margin="0" Orientation="Horizontal">
+							<Button Command="{Binding AcceptCommand}" Margin="0,0,4,0" Content="Accept"/>
+							<Button Command="{Binding AllocateCommand}" Margin="0,0,4,0" Content="Allocate"/>
+							<Button Command="{Binding DeleteCommand}" Content="Delete"/>
+						</StackPanel>
+					</StackPanel>
+				</DataTemplate>
+			</ItemsControl.ItemTemplate>
+		</ItemsControl>
+		<TextBlock HorizontalAlignment="Center" TextWrapping="Wrap" Text="SELL SIDE" VerticalAlignment="Top" FontSize="16" Foreground="#FF05510C" Grid.Column="2" Margin="0,15,0,0"/>
+		<ItemsControl Grid.Column="2" 
+			ItemsSource="{Binding SellSideMessages}" 
+			Margin="10,172,10,0" 
+			ItemTemplate="{StaticResource MessageTemplate}" />
+
+	</Grid>
+</Window>
+
