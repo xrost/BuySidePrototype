@@ -39,10 +39,9 @@ namespace BuySideOrderState
 			var allRejected = true;
 			foreach (var order in orders)
 			{
-				var state = order.GetState();
-				if (!(state == SellSideOrder.State.Deleted || state == SellSideOrder.State.Rejected))
+				if (order.IsAccepted)
 					return;
-				allRejected = allRejected && state == SellSideOrder.State.Rejected;
+				allRejected = allRejected && order.IsRejected;
 			}
 			if (allRejected)
 				OnRejected.Raise();

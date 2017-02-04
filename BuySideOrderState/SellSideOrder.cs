@@ -16,12 +16,13 @@ namespace BuySideOrderState
 
 		public enum State
 		{
-			NotAccepted,
+			DoesNotExist,
+				NotAccepted,
+				Rejected,
+				Deleted,
 			Accepted,
 				PendingAllocation,
 				Allocated,
-			Rejected,
-			Deleted,
 		}
 
 		private readonly StateMachine<State, Action> state = new StateMachine<State, Action>(State.NotAccepted);
@@ -30,6 +31,7 @@ namespace BuySideOrderState
 		{
 			BrokerId = brokerId;
 			state.Configure(State.NotAccepted)
+				.SubstateOf(State.DoesNotExist)
 				.Permit(Action.Accept, State.PendingAllocation)
 				.Permit(Action.Reject, State.Rejected);
 
@@ -44,6 +46,12 @@ namespace BuySideOrderState
 				.Permit(Action.Delete, State.Deleted)
 				.Ignore(Action.RejectCancel);
 
+			state.Configure(State.Rejected)
+				.SubstateOf(State.DoesNotExist);
+
+			state.Configure(State.Deleted)
+				.SubstateOf(State.DoesNotExist);
+
 			state.OnTransitioned(StateChanged);
 		}
 
@@ -55,6 +63,7 @@ namespace BuySideOrderState
 
 		public int BrokerId { get; }
 		public bool IsAccepted => state.IsInState(State.Accepted);
+		public bool DoesNotExists => state.IsInState(State.DoesNotExist);
 		public bool IsAllocated => state.IsInState(State.Allocated);
 		public bool IsDeleted => state.IsInState(State.Deleted);
 		public bool IsRejected => state.IsInState(State.Rejected);
