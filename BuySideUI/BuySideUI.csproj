@@ -79,7 +79,7 @@
     <Compile Include="Events\BrokerActionEvent.cs" />
     <Compile Include="Events\BuySideCompletedEvent.cs" />
     <Compile Include="ViewModel\BrokerViewModel.cs" />
-    <Compile Include="ViewModel\MainViewModel.cs" />
+    <Compile Include="ViewModel\MainVM.cs" />
     <Compile Include="ViewModel\SellSideOrderViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
     <Page Include="MainWindow.xaml">
