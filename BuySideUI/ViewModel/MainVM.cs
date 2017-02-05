@@ -33,9 +33,9 @@ namespace BuySideUI.ViewModel
 			model.SellSide.OnFirstOrderAccepted += (_, state) => BuySideMessages.Add("Order Accepted");
 			model.SellSide.OnAllocated += (_, state) => BuySideMessages.Add("Order Allocated");
 			model.SellSide.OnRejected += (_, state) => BuySideMessages.Add("Order Rejected");
-			model.SellSide.OnCancelled += (_, state) => BuySideMessages.Add("Order Cancelled");
 			model.SellSide.OnCancelRejected += (_, state) => BuySideMessages.Add("Cancellation Rejected");
 			model.OnBuySideCancel += (_, args) => SellSideMessages.Add("Order was cancelled");
+			model.OnCancelled += (_, state) => BuySideMessages.Add("Order Cancelled");
 
 			Messenger.Default.Register<BrokerActionEvent>(this, OnBrokerAction);
 		}
