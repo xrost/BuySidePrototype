@@ -8,11 +8,13 @@ using BuySideUI.Events;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using GalaSoft.MvvmLight.Messaging;
+using JetBrains.Annotations;
 
 namespace BuySideUI.ViewModel
 {
-    public class MainViewModel : ViewModelBase
-    {
+	[UsedImplicitly]
+	public class MainViewModel : ViewModelBase
+	{
 		private readonly Order model = new Order();
 
 		public MainViewModel()
@@ -22,11 +24,11 @@ namespace BuySideUI.ViewModel
 
 			AddOrderCommand = new RelayCommand(AddBuySideOrder, () => model.IsActionAvailable(Order.Trigger.AddBuySideOrder));
 
-			CancelBuySideOrderCommand = new RelayCommand(() => model.CancelBuySide(), 
+			CancelBuySideOrderCommand = new RelayCommand(() => model.CancelBuySide(),
 				() => model.IsActionAvailable(Order.Trigger.CancelBuySide));
 
 
-	        model.OnSellSide += OnSellSideTransition;
+			model.OnSellSide += OnSellSideTransition;
 			model.OnStateChange += (_, state) => RaisePropertyChanged(() => StateName);
 			model.SellSide.OnFirstOrderAccepted += (_, state) => BuySideMessages.Add("Order Accepted");
 			model.SellSide.OnAllocated += (_, state) => BuySideMessages.Add("Order Allocated");
@@ -38,38 +40,38 @@ namespace BuySideUI.ViewModel
 			Messenger.Default.Register<BrokerActionEvent>(this, OnBrokerAction);
 		}
 
-	    private void OnBrokerAction(BrokerActionEvent evt)
-	    {
-		    try
-		    {
-			    switch (evt.Action)
-			    {
-				    case BrokerAction.Accept:
-					    model.OrderCreated(evt.BrokerId);
-					    break;
-				    case BrokerAction.Allocate:
-					    model.OrderAllocated(evt.BrokerId);
-					    break;
-				    case BrokerAction.Delete:
-					    model.OrderDeleted(evt.BrokerId);
-					    break;
-				    case BrokerAction.Reject:
-					    model.OrderRejected(evt.BrokerId);
-					    break;
+		private void OnBrokerAction(BrokerActionEvent evt)
+		{
+			try
+			{
+				switch (evt.Action)
+				{
+					case BrokerAction.Accept:
+						model.OrderCreated(evt.BrokerId);
+						break;
+					case BrokerAction.Allocate:
+						model.OrderAllocated(evt.BrokerId);
+						break;
+					case BrokerAction.Delete:
+						model.OrderDeleted(evt.BrokerId);
+						break;
+					case BrokerAction.Reject:
+						model.OrderRejected(evt.BrokerId);
+						break;
 					case BrokerAction.RejectCancel:
 						model.CancelRejected(evt.BrokerId);
 						break;
 				}
 
-		    }
-		    catch (InvalidOperationException)
-		    {
-			    MessageBox.Show($"Action {evt.Action} is not allowed");
-		    }
-	    }
+			}
+			catch (InvalidOperationException)
+			{
+				MessageBox.Show($"Action {evt.Action} is not allowed");
+			}
+		}
 
-	    private void OnSellSideTransition(object sender, EventArgs eventArgs)
-	    {
+		private void OnSellSideTransition(object sender, EventArgs eventArgs)
+		{
 			ShowSellSide = true;
 			RaisePropertyChanged(nameof(ShowSellSide));
 			SellSideMessages.Add("New buy side order");
@@ -79,28 +81,28 @@ namespace BuySideUI.ViewModel
 		public IReadOnlyCollection<SellSideOrderViewModel> SellSideOrders { get; }
 		public IReadOnlyCollection<BrokerViewModel> Brokers { get; }
 
-	    public ObservableCollection<string> BuySideMessages { get; } = new ObservableCollection<string>();
-	    public ObservableCollection<string> SellSideMessages { get; } = new ObservableCollection<string>();
-	    public ObservableCollection<string> GatewayMessages { get; } = new ObservableCollection<string>();
+		public ObservableCollection<string> BuySideMessages { get; } = new ObservableCollection<string>();
+		public ObservableCollection<string> SellSideMessages { get; } = new ObservableCollection<string>();
+		public ObservableCollection<string> GatewayMessages { get; } = new ObservableCollection<string>();
 
 		public RelayCommand AddOrderCommand { get; }
 		public RelayCommand CancelBuySideOrderCommand { get; }
 
-	    public int BuySideStepCount => model.BuySideOrderCount;
+		public int BuySideStepCount => model.BuySideOrderCount;
 		public bool ShowSellSide { get; private set; }
 
 
-	    public string StateName => model.GetState().ToString();
+		public string StateName => model.GetState().ToString();
 
-	    private void AddBuySideOrder()
-	    {
-		    model.AddBuySideOrder(DateTime.Now.ToLongTimeString());
+		private void AddBuySideOrder()
+		{
+			model.AddBuySideOrder(DateTime.Now.ToLongTimeString());
 			RaisePropertyChanged(nameof(BuySideStepCount));
 		}
 
-	    public override void Cleanup()
-	    {
+		public override void Cleanup()
+		{
 			Messenger.Default.Unregister<BrokerActionEvent>(this);
 		}
-    }
+	}
 }

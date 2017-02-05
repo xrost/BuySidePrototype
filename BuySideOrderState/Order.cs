@@ -40,19 +40,18 @@ namespace BuySideOrderState
 				.InternalTransition(orderAllocatedTrigger, (brokerId, t) => sellSide.AllocateOrder(brokerId))
 				.InternalTransition(orderDeletedTrigger, OrderDeleted)
 				.Permit(Trigger.CloseOrder, State.Closed)
-				.Permit(Trigger.CancelBuySide, State.Cancelled)
-				.OnExit(t =>
-				{
-					if (t.Destination == State.Cancelled)
-						NotifySellSideAboutCancellation();
-				});
+				.Permit(Trigger.CancelBuySide, State.Cancelled);
 
 			state.Configure(State.Cancelled)
+				.OnEntry(NotifySellSideAboutCancellation)
 				.InternalTransition(orderAcceptedTrigger, OnOrderAccepted)
 				.InternalTransition(orderDeletedTrigger, OrderDeleted)
 				.InternalTransition(orderRejectedTrigger, OnOrderRejected)
 				.InternalTransition(cancelRejectedTrigger, CancelRejected)
 				.Permit(Trigger.CloseOrder, State.Closed);
+
+			state.Configure(State.Closed)
+				.OnEntryFrom(Trigger.CancelBuySide, () => { });
 
 			state.OnTransitioned(RaiseStateChanged);
 
@@ -93,7 +92,7 @@ namespace BuySideOrderState
 
 		private void NotifySellSideAboutCancellation()
 		{
-			OnBuySideCancel?.Invoke(this, EventArgs.Empty);
+			OnBuySideCancel.Raise();
 		}
 
 		public int BuySideOrderCount => buySide.Count;
