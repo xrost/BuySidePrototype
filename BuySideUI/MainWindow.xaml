@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:BuySideUI"
         mc:Ignorable="d"
 		DataContext="{Binding Main, Source={StaticResource Locator}}"
-        Title="MainWindow" Height="399.839" Width="628.887">
+        Title="MainWindow" Height="400" Width="626" MinWidth="626" MinHeight="400">
 	<Grid>
 		<Grid.Resources>
 			<DataTemplate x:Key="MessageTemplate">
@@ -58,7 +58,7 @@
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
 		</ItemsControl>
-		<TextBlock Grid.Column="1" TextWrapping="Wrap" Text="{Binding StateName, Mode=OneWay, StringFormat=State: \{0\}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold"/>
+		<TextBlock Grid.Column="1" TextWrapping="Wrap" Text="{Binding StateName, Mode=OneWay, StringFormat=Gateway: \{0\}}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="14" FontWeight="Bold"/>
 
 		<ItemsControl Grid.Column="2" 
 			ItemsSource="{Binding Brokers}" Margin="4,4.195,0,0" Grid.Row="1">
@@ -88,8 +88,8 @@
 			Margin="10,216.195,10,0" 
 			ItemTemplate="{StaticResource MessageTemplate}" Grid.Row="1" />
 		<StackPanel Grid.Column="1" Orientation="Horizontal" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center">
-			<Button x:Name="ResetToBuySide" Content="Start BuySide" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="76" Click="button_Click" Height="20" Margin="0,0,6,0"/>
-			<Button x:Name="ResetToSellSide" Content="Start SellSide" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="76" Height="20" Click="ResetToSellSide_Click"/>
+			<Button x:Name="ResetToBuySide" Content="Reset" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="110" Click="button_Click" Height="20" Margin="0,0,6,0"/>
+			<Button x:Name="ResetToSellSide" Content="Reset to SellSide" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="110" Height="20" Click="ResetToSellSide_Click"/>
 
 		</StackPanel>
 
