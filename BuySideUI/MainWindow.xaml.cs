@@ -12,11 +12,26 @@ namespace BuySideUI
 			InitializeComponent();
 		}
 
-		private void button_Click(object sender, RoutedEventArgs e)
+		private MainViewModel CreateViewModel()
 		{
 			var current = DataContext as MainViewModel;
 			current.Cleanup();
-			DataContext = ServiceLocator.Current.GetInstance<MainViewModel>(Guid.NewGuid().ToString());
+			var newViewModel = ServiceLocator.Current.GetInstance<MainViewModel>(Guid.NewGuid().ToString());
+			return newViewModel;
+		}
+
+		private void button_Click(object sender, RoutedEventArgs e)
+		{
+			var newViewModel = CreateViewModel();
+			DataContext = newViewModel;
+		}
+
+		private void ResetToSellSide_Click(object sender, RoutedEventArgs e)
+		{
+			var newViewModel = CreateViewModel();
+			newViewModel.AddOrderCommand.Execute(null);
+			newViewModel.AddOrderCommand.Execute(null);
+			DataContext = newViewModel;
 		}
 	}
 }

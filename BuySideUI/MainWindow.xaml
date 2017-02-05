@@ -87,7 +87,11 @@
 			ItemsSource="{Binding SellSideMessages}" 
 			Margin="10,216.195,10,0" 
 			ItemTemplate="{StaticResource MessageTemplate}" Grid.Row="1" />
-		<Button Content="Reset" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="76" Click="button_Click" Height="20" Grid.Row="1"/>
+		<StackPanel Grid.Column="1" Orientation="Horizontal" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Center">
+			<Button x:Name="ResetToBuySide" Content="Start BuySide" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="76" Click="button_Click" Height="20" Margin="0,0,6,0"/>
+			<Button x:Name="ResetToSellSide" Content="Start SellSide" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="76" Height="20" Click="ResetToSellSide_Click"/>
+
+		</StackPanel>
 
 	</Grid>
 </Window>
