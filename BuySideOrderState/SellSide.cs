@@ -9,8 +9,7 @@ namespace BuySideOrderState
 	public class SellSide : IEnumerable<SellSideOrder>
 	{
 		private readonly List<SellSideOrder> orders = new List<SellSideOrder>();
-		private IEnumerable<SellSideOrder> AcceptedOrders => orders.Where(o => o.IsAccepted);
-		private bool AllBrokersResponded => orders.All(o => o.HasResponse);
+		private bool buySideCancelled;
 
 		public SellSide(int brokerCount)
 		{
@@ -46,9 +45,9 @@ namespace BuySideOrderState
 				allRejected = allRejected && order.IsRejected;
 			}
 			if (allRejected)
-				OnRejected.Raise();
+				(buySideCancelled ? OnCancelConfirmed : OnRejected).Raise();
 			else
-				OnCancelled.Raise();
+				(buySideCancelled ? OnCancelConfirmed : OnCancelled).Raise();
 		}
 
 		public void DeleteOrder(int brokerId)
@@ -69,6 +68,11 @@ namespace BuySideOrderState
 			GetOrder(brokerId).RejectCancel();
 			if (!before && orders.All(o => o.IsCancelRejected || o.NotAccepted))
 				OnCancelRejected.Raise();
+		}
+
+		public void Cancel()
+		{
+			buySideCancelled = true;
 		}
 
 		[CanBeNull]
@@ -100,5 +104,6 @@ namespace BuySideOrderState
 		public event EventHandler OnCancelled;
 		public event EventHandler OnCancelRejected;
 		public event EventHandler OnRejected;
+		public event EventHandler OnCancelConfirmed;
 	}
 }

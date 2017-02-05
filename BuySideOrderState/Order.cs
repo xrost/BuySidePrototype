@@ -51,7 +51,7 @@ namespace BuySideOrderState
 				.Permit(Trigger.CloseOrder, State.Closed);
 
 			state.Configure(State.Closed)
-				.OnEntryFrom(Trigger.CancelBuySide, () => OnCancelled.Raise());
+				.OnEntryFrom(Trigger.CancelBuySide, (tr) => OnCancelConfirmed.Raise());
 
 			state.OnTransitioned(RaiseStateChanged);
 
@@ -62,6 +62,7 @@ namespace BuySideOrderState
 		{
 			SellSide.OnRejected += (_, args) => state.Fire(Trigger.CloseOrder);
 			sellSide.OnCancelled += (_, args) => state.Fire(Trigger.CloseOrder);
+			sellSide.OnCancelConfirmed += (_, args) => state.Fire(Trigger.CloseOrder);
 		}
 
 		private void RaiseStateChanged(StateMachine<State, Trigger>.Transition t)
@@ -92,6 +93,7 @@ namespace BuySideOrderState
 
 		private void NotifySellSideAboutCancellation()
 		{
+			sellSide.Cancel();
 			OnBuySideCancel.Raise();
 		}
 
@@ -173,6 +175,7 @@ namespace BuySideOrderState
 				this.sellSide = sellSide;
 				this.sellSide.OnFirstOrderAccepted += FirstOrderAccepted;
 				this.sellSide.OnCancelled += (_, args) => order.OnCancelled.Raise();
+				this.sellSide.OnCancelConfirmed += (_, args) => order.OnCancelConfirmed.Raise();
 			}
 
 			private void FirstOrderAccepted(object sender, EventArgs e)
@@ -213,5 +216,7 @@ namespace BuySideOrderState
 		public event EventHandler OnBuySideCancel;
 
 		public event EventHandler OnCancelled;
+
+		public event EventHandler OnCancelConfirmed;
 	}
 }
