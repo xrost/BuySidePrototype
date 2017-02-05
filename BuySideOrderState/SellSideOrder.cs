@@ -78,7 +78,12 @@ namespace BuySideOrderState
 
 		public void Allocate() => state.Fire(Action.Allocate);
 
-		public void Delete() => state.Fire(Action.Delete);
+		public void Delete()
+		{
+			if (state.CanFire(Action.Delete))
+				IsCancelRejected = false;
+			state.Fire(Action.Delete);
+		}
 
 		public void RejectCancel()
 		{
