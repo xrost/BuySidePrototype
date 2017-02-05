@@ -43,6 +43,7 @@ namespace BuySideOrderState
 			state.Configure(State.Allocated)
 				.SubstateOf(State.Accepted)
 				.Permit(Action.Delete, State.Deleted)
+				.Ignore(Action.Allocate)
 				.Ignore(Action.RejectCancel);
 
 			state.Configure(State.Rejected)
