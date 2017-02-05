@@ -47,6 +47,7 @@ namespace BuySideOrderState
 				.InternalTransition(orderAcceptedTrigger, OnOrderAccepted)
 				.InternalTransition(orderDeletedTrigger, OrderDeleted)
 				.InternalTransition(orderRejectedTrigger, OnOrderRejected)
+				.InternalTransition(orderAllocatedTrigger, (brokerId, t) => sellSide.AllocateOrder(brokerId))
 				.InternalTransition(cancelRejectedTrigger, CancelRejected)
 				.Permit(Trigger.CloseOrder, State.Closed);
 
