@@ -9,6 +9,8 @@ namespace BuySideOrderState
 	public class SellSide : IEnumerable<SellSideOrder>
 	{
 		private readonly List<SellSideOrder> orders = new List<SellSideOrder>();
+		private IEnumerable<SellSideOrder> AcceptedOrders => orders.Where(o => o.IsAccepted);
+		private bool AllBrokersResponded => orders.All(o => o.HasResponse);
 
 		public SellSide(int brokerCount)
 		{

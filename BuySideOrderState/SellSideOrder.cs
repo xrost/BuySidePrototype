@@ -61,6 +61,7 @@ namespace BuySideOrderState
 		}
 
 		public int BrokerId { get; }
+		public bool HasResponse => !state.IsInState(State.DoesNotExist);
 		public bool IsAccepted => state.IsInState(State.Accepted);
 		public bool NotAccepted => state.IsInState(State.NotAccepted);
 		public bool IsAllocated => state.IsInState(State.Allocated);
