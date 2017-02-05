@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:BuySideUI"
         mc:Ignorable="d"
 		DataContext="{Binding Main, Source={StaticResource Locator}}"
-        Title="MainWindow" Height="371.504" Width="563.559">
+        Title="MainWindow" Height="399.839" Width="628.887">
 	<Grid>
 		<Grid.Resources>
 			<DataTemplate x:Key="MessageTemplate">
