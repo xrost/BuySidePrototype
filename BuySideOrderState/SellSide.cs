@@ -31,7 +31,7 @@ namespace BuySideOrderState
 		{
 			var allocationExisted = orders.Any(o => o.IsAllocated);
 			GetOrder(brokerId).Allocate();
-			if (!allocationExisted)
+			if (!buySideCancelled && !allocationExisted)
 				OnAllocated.Raise();
 		}
 
