@@ -34,7 +34,7 @@ namespace BuySideUI.ViewModel
 		{
 			switch (order.GetState())
 			{
-				case SellSideOrder.State.NotAccepted:
+				case SellSideOrder.State.DoesNotExist:
 					return "Pending";
 				case SellSideOrder.State.Rejected:
 					return "Rejected";

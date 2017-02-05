@@ -39,7 +39,7 @@ namespace BuySideOrderState
 			var allRejected = true;
 			foreach (var order in orders)
 			{
-				if (order.IsAccepted)
+				if (!(order.IsDeleted || order.IsRejected))
 					return;
 				allRejected = allRejected && order.IsRejected;
 			}
@@ -63,8 +63,9 @@ namespace BuySideOrderState
 
 		public void RejectCancel(int brokerId)
 		{
+			var before = orders.All(o => o.IsCancelRejected || o.NotAccepted);
 			GetOrder(brokerId).RejectCancel();
-			if (orders.All(o => o.IsCancelRejected || o.IsRejected))
+			if (!before && orders.All(o => o.IsCancelRejected || o.NotAccepted))
 				OnCancelRejected.Raise();
 		}
 
