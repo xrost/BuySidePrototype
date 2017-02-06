@@ -19,6 +19,8 @@ namespace BuySideUI.ViewModel
 
 		public MainViewModel()
 		{
+			if (IsInDesignMode)
+				model.AddBuySideOrder(null);
 			SellSideOrders = model.SellSide.Orders.Select(o => new SellSideOrderViewModel(o)).ToList();
 			Brokers = model.SellSide.Orders.Select(o => new BrokerViewModel(o.BrokerId)).ToList();
 
