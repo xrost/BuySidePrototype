@@ -75,6 +75,8 @@ namespace BuySideOrderState
 
 		private bool AllCancelRejected() => orders.All(o => o.IsCancelRejected || o.NotAccepted);
 
+		public bool HasAllocations() => orders.Any(o => o.IsAllocated);
+
 		public void Cancel()
 		{
 			buySideCancelled = true;

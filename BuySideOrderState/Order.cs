@@ -39,7 +39,7 @@ namespace BuySideOrderState
 				.InternalTransition(orderAllocatedTrigger, (brokerId, t) => sellSide.AllocateOrder(brokerId))
 				.InternalTransition(orderDeletedTrigger, OrderDeleted)
 				.Permit(Trigger.CloseOrder, State.Closed)
-				.Permit(Trigger.CancelBuySide, State.Cancelled);
+				.PermitIf(Trigger.CancelBuySide, State.Cancelled, () => !sellSide.HasAllocations());
 
 			state.Configure(State.Cancelled)
 				.OnEntry(NotifySellSideAboutCancellation)
