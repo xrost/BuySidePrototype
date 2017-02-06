@@ -80,6 +80,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\BoolToVisConverter.cs" />
+    <Compile Include="Converters\StepCountToVisibilityConverter.cs" />
     <Compile Include="Events\BrokerActionEvent.cs" />
     <Compile Include="Events\BuySideCompletedEvent.cs" />
     <Compile Include="ViewModel\BrokerViewModel.cs" />
