@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Stateless;
 
 namespace BuySideOrderState
@@ -91,6 +92,8 @@ namespace BuySideOrderState
 			IsCancelRejected = true;
 			OnStateChange?.Invoke(this, EventArgs.Empty);
 		}
+
+		public IEnumerable<Action> AllowedActions => state.PermittedTriggers;
 
 		public event EventHandler OnStateChange;
 	}

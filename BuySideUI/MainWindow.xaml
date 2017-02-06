@@ -51,9 +51,10 @@
 			ItemsSource="{Binding SellSideOrders}" Margin="6,4.195,12,27" Grid.Row="1" FontSize="14">
 			<ItemsControl.ItemTemplate>
 				<DataTemplate>
-					<DockPanel LastChildFill="False">
-						<TextBlock Text="{Binding BrokerName}" DockPanel.Dock="Left"/>
-						<TextBlock Text="{Binding State}" DockPanel.Dock="Right"/>
+					<DockPanel LastChildFill="False" Margin="0,0,0,5">
+						<TextBlock Text="{Binding BrokerName}" DockPanel.Dock="Left" Margin="0,0,8,0"/>
+						<TextBlock Text="{Binding State}" DockPanel.Dock="Left" Foreground="#FF3361B2"/>
+						<TextBlock Text="{Binding AllowedActions}" DockPanel.Dock="Right" Foreground="#FF4A975F" Margin="6,0,0,0" ToolTip="Allowed Actions"/>
 					</DockPanel>
 				</DataTemplate>
 			</ItemsControl.ItemTemplate>
