@@ -30,11 +30,10 @@ namespace BuySideOrderState
 			state.Configure(State.BuySide)
 				.Ignore(Trigger.AddBuySideOrder)
 				.Permit(Trigger.BuySideCompleted, State.SellSide)
-				//.Permit(Trigger.CancelBuySide, State.Closed)
 				.Permit(Trigger.CloseOrder, State.Closed);
 
 			state.Configure(State.SellSide)
-				.OnEntry(() => OnSellSide?.Invoke(this, EventArgs.Empty))
+				.OnEntryFrom(Trigger.BuySideCompleted, () => OnSellSide?.Invoke(this, EventArgs.Empty))
 				.InternalTransition(orderAcceptedTrigger, OnOrderAccepted)
 				.InternalTransition(orderRejectedTrigger, OnOrderRejected)
 				.InternalTransition(orderAllocatedTrigger, (brokerId, t) => sellSide.AllocateOrder(brokerId))
@@ -49,12 +48,15 @@ namespace BuySideOrderState
 				.InternalTransition(orderRejectedTrigger, OnOrderRejected)
 				.InternalTransition(orderAllocatedTrigger, (brokerId, t) => sellSide.AllocateOrder(brokerId))
 				.InternalTransition(cancelRejectedTrigger, CancelRejected)
+				.Permit(Trigger.UndoCancel, State.SellSide)
 				.Permit(Trigger.CloseOrder, State.Closed);
 
 			state.Configure(State.Closed)
 				.OnEntryFrom(Trigger.CancelBuySide, (tr) => OnCancelConfirmed.Raise());
 
 			state.OnTransitioned(RaiseStateChanged);
+
+			sellSide.OnCancelRejected += (_, args) => state.Fire(Trigger.UndoCancel);
 
 			var xml = state.ToDotGraph();
 		}
@@ -158,6 +160,7 @@ namespace BuySideOrderState
 			OrderDeleted,
 			OrderRejected,
 			CancelRejected,
+			UndoCancel,
 			CloseOrder
 		}
 

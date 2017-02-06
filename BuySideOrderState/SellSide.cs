@@ -64,11 +64,16 @@ namespace BuySideOrderState
 
 		public void RejectCancel(int brokerId)
 		{
-			var before = orders.All(o => o.IsCancelRejected || o.NotAccepted);
+			var before = AllCancelRejected();
 			GetOrder(brokerId).RejectCancel();
-			if (!before && orders.All(o => o.IsCancelRejected || o.NotAccepted))
+			if (!before && AllCancelRejected())
+			{
+				buySideCancelled = false;
 				OnCancelRejected.Raise();
+			}
 		}
+
+		private bool AllCancelRejected() => orders.All(o => o.IsCancelRejected || o.NotAccepted);
 
 		public void Cancel()
 		{
