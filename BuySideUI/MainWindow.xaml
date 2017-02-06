@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:BuySideUI"
         mc:Ignorable="d"
 		DataContext="{Binding Main, Source={StaticResource Locator}}"
-        Title="MainWindow" Height="400" Width="626" MinWidth="626" MinHeight="400">
+        Title="Gateway Order Simulator" Height="400" Width="626" MinWidth="626" MinHeight="400">
 	<Grid>
 		<Grid.Resources>
 			<DataTemplate x:Key="MessageTemplate">

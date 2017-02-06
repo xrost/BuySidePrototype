@@ -25,7 +25,7 @@ namespace BuySideUI.ViewModel
 			AddOrderCommand = new RelayCommand(AddBuySideOrder, () => model.IsActionAvailable(Order.Trigger.AddBuySideOrder));
 
 			CancelBuySideOrderCommand = new RelayCommand(() => model.CancelBuySide(),
-				() => model.IsActionAvailable(Order.Trigger.CancelBuySide));
+				() => model.IsActionAvailable(Order.Trigger.CancelBuySide) && model.BuySideOrderCount > 0);
 
 
 			model.OnSellSide += OnSellSideTransition;
