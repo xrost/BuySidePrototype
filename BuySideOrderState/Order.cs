@@ -30,7 +30,7 @@ namespace BuySideOrderState
 			state.Configure(State.BuySide)
 				.Ignore(Trigger.AddBuySideOrder)
 				.Permit(Trigger.BuySideCompleted, State.SellSide)
-				.Permit(Trigger.CancelBuySide, State.Closed)
+				//.Permit(Trigger.CancelBuySide, State.Closed)
 				.Permit(Trigger.CloseOrder, State.Closed);
 
 			state.Configure(State.SellSide)
