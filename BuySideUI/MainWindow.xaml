@@ -17,8 +17,8 @@
 			</DataTemplate>
 		</Grid.Resources>
 		<Grid.RowDefinitions>
-			<RowDefinition Height="34*"/>
-			<RowDefinition Height="285*"/>
+			<RowDefinition Height="39"/>
+			<RowDefinition/>
 		</Grid.RowDefinitions>
 		<Grid.ColumnDefinitions>
 			<ColumnDefinition Width="162"/>
