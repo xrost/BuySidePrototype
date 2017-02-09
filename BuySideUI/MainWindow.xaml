@@ -49,7 +49,7 @@
 
 
 		<ItemsControl Grid.Column="1"
-			ItemsSource="{Binding SellSideOrders}" Margin="6,4.195,12,27" Grid.Row="1" FontSize="14"
+			ItemsSource="{Binding SellSideOrders}" Margin="6,4,12,252" Grid.Row="1" FontSize="14"
 			Visibility="{Binding BuySideStepCount, Converter={StaticResource StepCountToVisibility}}">
 			<ItemsControl.ItemTemplate>
 				<DataTemplate>
@@ -95,6 +95,10 @@
 			<Button x:Name="ResetToSellSide" Content="Reset to SellSide" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="110" Height="20" Click="ResetToSellSide_Click"/>
 
 		</StackPanel>
+		<TextBox
+			Text="{Binding Log, Mode=OneWay}" 
+			Grid.Column="1" Margin="6,103,12,29" Grid.Row="1" TextWrapping="Wrap" BorderBrush="{x:Null}" IsReadOnly="True" VerticalScrollBarVisibility="Auto"/>
+		<TextBlock Grid.Column="1" HorizontalAlignment="Left" Margin="6,87,0,0" Grid.Row="1" TextWrapping="Wrap" Text="LOG:" VerticalAlignment="Top"/>
 
 	</Grid>
 </Window>

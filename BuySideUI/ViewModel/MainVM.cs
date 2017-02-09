@@ -20,13 +20,17 @@ namespace BuySideUI.ViewModel
 		public MainViewModel()
 		{
 			if (IsInDesignMode)
+			{
 				model.AddBuySideOrder(null);
+				model.AddBuySideOrder(null);
+				LogMessage("Buyside order completed");
+			}
 			SellSideOrders = model.SellSide.Orders.Select(o => new SellSideOrderViewModel(o)).ToList();
 			Brokers = model.SellSide.Orders.Select(o => new BrokerViewModel(o.BrokerId)).ToList();
 
 			AddOrderCommand = new RelayCommand(AddBuySideOrder, () => model.IsActionAvailable(Order.Trigger.AddBuySideOrder));
 
-			CancelBuySideOrderCommand = new RelayCommand(() => model.CancelBuySide(),
+			CancelBuySideOrderCommand = new RelayCommand(CancelBuySide,
 				() => model.IsActionAvailable(Order.Trigger.CancelBuySide));
 
 
@@ -41,6 +45,12 @@ namespace BuySideUI.ViewModel
 			model.OnCancelConfirmed += (_, args) => BuySideMessages.Add("Cancel Confirmed");
 
 			Messenger.Default.Register<BrokerActionEvent>(this, OnBrokerAction);
+		}
+
+		private void CancelBuySide()
+		{
+			model.CancelBuySide();
+			LogMessage("BuySide cancelled");
 		}
 
 		private void OnBrokerAction(BrokerActionEvent evt)
@@ -64,13 +74,33 @@ namespace BuySideUI.ViewModel
 					case BrokerAction.RejectCancel:
 						model.CancelRejected(evt.BrokerId);
 						break;
+					default:
+						throw new InvalidOperationException();
 				}
-
+				LogBrokerAction(evt);
 			}
 			catch (InvalidOperationException)
 			{
 				MessageBox.Show($"Action {evt.Action} is not allowed");
 			}
+		}
+
+		private void LogBrokerAction(BrokerActionEvent evt)
+		{
+			var action = evt.Action.ToString();
+			if (action.EndsWith("e"))
+				action += "d";
+			else
+				action += "ed";
+
+			Log += $"Broker #{evt.BrokerId} {action.ToLower()}\n";
+			RaisePropertyChanged(() => Log);
+		}
+
+		private void LogMessage(string text)
+		{
+			Log += $"{text}\n";
+			RaisePropertyChanged(() => Log);
 		}
 
 		private void OnSellSideTransition(object sender, EventArgs eventArgs)
@@ -86,7 +116,8 @@ namespace BuySideUI.ViewModel
 
 		public ObservableCollection<string> BuySideMessages { get; } = new ObservableCollection<string>();
 		public ObservableCollection<string> SellSideMessages { get; } = new ObservableCollection<string>();
-		public ObservableCollection<string> GatewayMessages { get; } = new ObservableCollection<string>();
+
+		public string Log { get; private set; }
 
 		public RelayCommand AddOrderCommand { get; }
 		public RelayCommand CancelBuySideOrderCommand { get; }
