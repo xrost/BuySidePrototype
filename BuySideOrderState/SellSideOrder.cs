@@ -21,7 +21,7 @@ namespace BuySideOrderState
 			Accepted,
 				PendingAllocation,
 				Allocated,
-			NotAccepted,
+			Inactive,
 				Rejected,
 				Deleted
 		}
@@ -48,10 +48,10 @@ namespace BuySideOrderState
 				.Ignore(Action.RejectCancel);
 
 			state.Configure(State.Rejected)
-				.SubstateOf(State.NotAccepted);
+				.SubstateOf(State.Inactive);
 
 			state.Configure(State.Deleted)
-				.SubstateOf(State.NotAccepted);
+				.SubstateOf(State.Inactive);
 
 			state.OnTransitioned(StateChanged);
 		}
@@ -65,7 +65,7 @@ namespace BuySideOrderState
 		public int BrokerId { get; }
 		public bool HasResponse => !state.IsInState(State.DoesNotExist);
 		public bool IsAccepted => state.IsInState(State.Accepted);
-		public bool NotAccepted => state.IsInState(State.NotAccepted);
+		public bool IsInactive => state.IsInState(State.Inactive);
 		public bool IsAllocated => state.IsInState(State.Allocated);
 		public bool IsDeleted => state.IsInState(State.Deleted);
 		public bool IsRejected => state.IsInState(State.Rejected);
