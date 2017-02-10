@@ -37,17 +37,11 @@ namespace BuySideOrderState
 
 		private void RaiseRejectedOrCancelled()
 		{
-			var allRejected = true;
-			foreach (var order in orders)
-			{
-				if (!(order.IsDeleted || order.IsRejected))
-					return;
-				allRejected = allRejected && order.IsRejected;
-			}
-			if (allRejected)
-				(buySideCancelled ? OnCancelConfirmed : OnRejected).Raise();
+			var counts = new EventSelector(orders);
+			if (buySideCancelled)
+				counts.RaiseCancelled(this);
 			else
-				(buySideCancelled ? OnCancelConfirmed : OnCancelled).Raise();
+				counts.Raise(this);
 		}
 
 		public void DeleteOrder(int brokerId)
@@ -64,16 +58,9 @@ namespace BuySideOrderState
 
 		public void RejectCancel(int brokerId)
 		{
-			var before = AllCancelRejected();
 			GetOrder(brokerId).RejectCancel();
-			if (!before && AllCancelRejected())
-			{
-				buySideCancelled = false;
-				OnCancelRejected.Raise();
-			}
+			RaiseRejectedOrCancelled();
 		}
-
-		private bool AllCancelRejected() => orders.All(o => o.IsCancelRejected || o.NotAccepted);
 
 		public bool HasAllocations() => orders.Any(o => o.IsAllocated);
 
@@ -92,6 +79,53 @@ namespace BuySideOrderState
 			if (order == null)
 				throw new Exception("Broker not found");
 			return order;
+		}
+
+		struct EventSelector
+		{
+			private readonly int cancelRejectedCount;
+			private readonly int rejectedCount;
+			private readonly int deletedCount;
+			private readonly int orderCount;
+
+			public EventSelector(IEnumerable<SellSideOrder> orders) : this()
+			{
+				foreach (var order in orders)
+				{
+					orderCount++;
+					if (order.IsRejected)
+						rejectedCount++;
+					if (order.IsDeleted)
+						deletedCount++;
+					if (order.IsCancelRejected)
+						cancelRejectedCount++;
+				}
+			}
+
+			private bool AllRejected() => rejectedCount == orderCount;
+			private bool AllInactive() => rejectedCount + deletedCount == orderCount;
+			private bool AllCancelRejected() => cancelRejectedCount > 0 && cancelRejectedCount + rejectedCount + deletedCount == orderCount;
+
+			public void Raise(SellSide sellSide)
+			{
+				if (AllRejected())
+					sellSide.OnRejected.Raise();
+				else if (AllInactive())
+					sellSide.OnCancelled.Raise();
+				else if (AllCancelRejected())
+					sellSide.OnCancelRejected.Raise();
+			}
+
+			public void RaiseCancelled(SellSide sellSide)
+			{
+				if (AllInactive())
+					sellSide.OnCancelConfirmed.Raise();
+				else if (AllCancelRejected())
+				{
+					sellSide.buySideCancelled = false;
+					sellSide.OnCancelRejected.Raise();
+				}
+			}
 		}
 
 		#region IEnumerable
