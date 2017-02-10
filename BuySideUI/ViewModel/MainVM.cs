@@ -88,12 +88,8 @@ namespace BuySideUI.ViewModel
 		private void LogBrokerAction(BrokerActionEvent evt)
 		{
 			var action = evt.Action.ToString();
-			if (action.EndsWith("e"))
-				action += "d";
-			else
-				action += "ed";
 
-			Log += $"Broker #{evt.BrokerId} {action.ToLower()}\n";
+			Log += $"Broker #{evt.BrokerId} {action}\n";
 			RaisePropertyChanged(() => Log);
 		}
 
